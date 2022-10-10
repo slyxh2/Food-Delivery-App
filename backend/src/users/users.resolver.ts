@@ -1,7 +1,12 @@
+import { UseGuards } from "@nestjs/common";
 import { Args, Context, Mutation, Query } from "@nestjs/graphql";
 import { Resolver } from "@nestjs/graphql";
+import { AuthUser } from "src/auth/auth-user.decorator";
+import { AuthGuard } from "src/auth/auth.guard";
 import { CreateAccountInput, CreateAccountOutput } from "./dto/create-account.dto";
+import { EditProfileInput, EditProfileOutput } from "./dto/edit-profile.dto";
 import { LoginOutput, LoginInput } from "./dto/login.dto";
+import { UserProfileInput, UserProfileOutput } from "./dto/user-profile.dto";
 import { User } from "./entities/users.entity";
 import { UserService } from "./users.service";
 
@@ -13,10 +18,6 @@ export class UserResolver {
         private readonly userService: UserService
     ) { }
 
-    @Query(returns => Boolean)
-    hi() {
-        return true;
-    }
 
     @Mutation(returns => CreateAccountOutput)
     async createAccount(@Args('input') accountInf: CreateAccountInput): Promise<CreateAccountOutput> {
@@ -52,8 +53,52 @@ export class UserResolver {
     }
 
     @Query(returns => User)
-    me(@Context() context) {
-        console.log(context);
+    @UseGuards(AuthGuard)
+    me(
+        @AuthUser() authUser: User,
+        @Context() context
+    ) {
+        return authUser;
+    }
+
+
+    @Query(returns => UserProfileOutput)
+    @UseGuards(AuthGuard)
+    async getUserProfile(@Args('userId') userProfileInput: UserProfileInput): Promise<UserProfileOutput> {
+        try {
+            const user = await this.userService.findUserById(userProfileInput.userId);
+            if (user) {
+                return {
+                    ok: true,
+                    user,
+                }
+            }
+        } catch (error) {
+            return {
+                ok: false,
+                error: 'User not found'
+            }
+        }
+
+    }
+
+    @UseGuards(AuthGuard)
+    @Mutation(returns => EditProfileOutput)
+    async editProfile(
+        @AuthUser() user: User,
+        @Args('input') profileInf: EditProfileInput
+    ): Promise<EditProfileOutput> {
+        try {
+            await this.userService.updateProfile(user.id, profileInf);
+            return {
+                ok: true
+            }
+        } catch (error) {
+            return {
+                ok: false,
+                error
+            }
+        }
     }
 
 }

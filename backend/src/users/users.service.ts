@@ -5,6 +5,7 @@ import { CreateAccountInput } from "./dto/create-account.dto";
 import { User } from "./entities/users.entity";
 import { LoginOutput, LoginInput } from "./dto/login.dto";
 import { JwtService } from "src/jwt/jwt.service";
+import { EditProfileInput } from "./dto/edit-profile.dto";
 
 
 
@@ -70,5 +71,11 @@ export class UserService {
                 id
             }
         })
+    }
+
+    async updateProfile(userId: number, newProfile: EditProfileInput): Promise<User> {
+        let user = await this.users.findOne({ where: { id: userId } });
+        Object.assign(user, newProfile);
+        return this.users.save(user);
     }
 }
