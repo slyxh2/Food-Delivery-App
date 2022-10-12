@@ -1,11 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { CreateAccountInput } from "./dto/create-account.dto";
+import { CreateAccountInput, CreateAccountOutput } from "./dto/create-account.dto";
 import { User } from "./entities/users.entity";
 import { LoginOutput, LoginInput } from "./dto/login.dto";
 import { JwtService } from "src/jwt/jwt.service";
 import { EditProfileInput } from "./dto/edit-profile.dto";
+import { Verfication } from "./entities/verification.entity";
+import { MailService } from "src/mail/mail.service";
 
 
 
@@ -13,10 +15,12 @@ import { EditProfileInput } from "./dto/edit-profile.dto";
 export class UserService {
     constructor(
         @InjectRepository(User) private readonly users: Repository<User>,
-        private readonly jwtService: JwtService
+        @InjectRepository(Verfication) private readonly verfication: Repository<Verfication>,
+        private readonly jwtService: JwtService,
+        private readonly mailService: MailService
     ) { }
 
-    async createAccount(accountInf: CreateAccountInput): Promise<string | undefined> {
+    async createAccount(accountInf: CreateAccountInput): Promise<CreateAccountOutput> {
         const { email, password, role } = accountInf
         // check new user
         try {
@@ -24,11 +28,14 @@ export class UserService {
                 where: { email }
             });
             if (exists) {
-                return 'There is a user with that email already';
+                return { ok: false, error: 'There is a user with that email already' }
             }
-            await this.users.save(this.users.create({ email, password, role }));
+            const user = await this.users.save(this.users.create({ email, password, role }));
+            const ver = await this.verfication.save(this.verfication.create({ user }));
+            this.mailService.sendVerificationEmail({ email, code: ver.code })
+            return { ok: true };
         } catch (e) {
-            return "Couldn't create account";
+            return { ok: false, error: "Couldn't create account" }
         }
     }
 
@@ -36,7 +43,8 @@ export class UserService {
         const { email, password } = loginInf;
         try {
             const user = await this.users.findOne({
-                where: { email }
+                where: { email },
+                select: ['id', 'password']
             })
             if (!user) {
                 return {
@@ -74,8 +82,32 @@ export class UserService {
     }
 
     async updateProfile(userId: number, newProfile: EditProfileInput): Promise<User> {
+        const { email } = newProfile;
         let user = await this.users.findOne({ where: { id: userId } });
+        if (email) {
+            user.verified = false;
+            await this.verfication.delete({ user: { id: user.id } });
+            const ver = await this.verfication.save(this.verfication.create({ user }));
+            this.mailService.sendVerificationEmail({ email, code: ver.code });
+        }
         Object.assign(user, newProfile);
         return this.users.save(user);
+    }
+
+    async verifyEmail(code: string): Promise<boolean> {
+        try {
+            const ver = await this.verfication.findOne({
+                where: { code },
+                relations: ['user']
+            });
+            if (ver) {
+                ver.user.verified = true;
+                this.users.save(ver.user);
+                return true;
+            }
+        } catch (e) {
+            console.log(e);
+            return false;
+        }
     }
 }
