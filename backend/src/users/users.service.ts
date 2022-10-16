@@ -5,9 +5,11 @@ import { CreateAccountInput, CreateAccountOutput } from "./dto/create-account.dt
 import { User } from "./entities/users.entity";
 import { LoginOutput, LoginInput } from "./dto/login.dto";
 import { JwtService } from "src/jwt/jwt.service";
-import { EditProfileInput } from "./dto/edit-profile.dto";
-import { Verfication } from "./entities/verification.entity";
+import { EditProfileInput, EditProfileOutput } from "./dto/edit-profile.dto";
+import { Verification } from "./entities/verification.entity";
 import { MailService } from "src/mail/mail.service";
+import { UserProfileOutput } from "./dto/user-profile.dto";
+import { VerifyEmailOutput } from "./dto/verify-email.dto";
 
 
 
@@ -15,7 +17,7 @@ import { MailService } from "src/mail/mail.service";
 export class UserService {
     constructor(
         @InjectRepository(User) private readonly users: Repository<User>,
-        @InjectRepository(Verfication) private readonly verfication: Repository<Verfication>,
+        @InjectRepository(Verification) private readonly Verification: Repository<Verification>,
         private readonly jwtService: JwtService,
         private readonly mailService: MailService
     ) { }
@@ -31,7 +33,7 @@ export class UserService {
                 return { ok: false, error: 'There is a user with that email already' }
             }
             const user = await this.users.save(this.users.create({ email, password, role }));
-            const ver = await this.verfication.save(this.verfication.create({ user }));
+            const ver = await this.Verification.save(this.Verification.create({ user }));
             this.mailService.sendVerificationEmail({ email, code: ver.code })
             return { ok: true };
         } catch (e) {
@@ -73,41 +75,62 @@ export class UserService {
         }
     }
 
-    async findUserById(id: number): Promise<User> {
-        return this.users.findOne({
-            where: {
-                id
-            }
-        })
-    }
 
-    async updateProfile(userId: number, newProfile: EditProfileInput): Promise<User> {
-        const { email } = newProfile;
-        let user = await this.users.findOne({ where: { id: userId } });
-        if (email) {
-            user.verified = false;
-            await this.verfication.delete({ user: { id: user.id } });
-            const ver = await this.verfication.save(this.verfication.create({ user }));
-            this.mailService.sendVerificationEmail({ email, code: ver.code });
-        }
-        Object.assign(user, newProfile);
-        return this.users.save(user);
-    }
-
-    async verifyEmail(code: string): Promise<boolean> {
+    async findUserById(id: number): Promise<UserProfileOutput> {
         try {
-            const ver = await this.verfication.findOne({
+            const user = await this.users.findOne({
+                where: {
+                    id
+                }
+            })
+            return {
+                ok: true,
+                user,
+            };
+        } catch (error) {
+            return { ok: false, error: 'User Not Found' };
+        }
+
+
+    }
+
+    async updateProfile(userId: number, newProfile: EditProfileInput): Promise<EditProfileOutput> {
+        try {
+            const { email } = newProfile;
+            let user = await this.users.findOne({ where: { id: userId } });
+            if (email) {
+                user.verified = false;
+                await this.Verification.delete({ user: { id: user.id } });
+                const ver = await this.Verification.save(this.Verification.create({ user }));
+                this.mailService.sendVerificationEmail({ email, code: ver.code });
+            }
+            Object.assign(user, newProfile);
+            return {
+                ok: true,
+                user: await this.users.save(user)
+            }
+        } catch (error) {
+            return { ok: false, error: 'Could not update profile' };
+        }
+
+    }
+
+    async verifyEmail(code: string): Promise<VerifyEmailOutput> {
+        try {
+            const ver = await this.Verification.findOne({
                 where: { code },
                 relations: ['user']
             });
             if (ver) {
                 ver.user.verified = true;
-                this.users.save(ver.user);
-                return true;
+                await this.users.save(ver.user);
+                await this.Verification.delete(ver.id);
+                return { ok: true };
             }
-        } catch (e) {
-            console.log(e);
-            return false;
+            return { ok: false, error: 'Verification not found.' };
+        } catch (error) {
+            console.log(error);
+            return { ok: false, error: 'Could not verify email' };
         }
     }
 }

@@ -59,7 +59,7 @@ export class UserResolver {
     @UseGuards(AuthGuard)
     async getUserProfile(@Args('userId') userProfileInput: UserProfileInput): Promise<UserProfileOutput> {
         try {
-            const user = await this.userService.findUserById(userProfileInput.userId);
+            const { user } = await this.userService.findUserById(userProfileInput.userId);
             if (user) {
                 return {
                     ok: true,
@@ -98,9 +98,8 @@ export class UserResolver {
     async verifyEmail(@Args('input') verify: VerifyEmailInput): Promise<VerifyEmailOutput> {
         const { code } = verify;
         try {
-            await this.userService.verifyEmail(code);
-            return { ok: true }
-
+            let result = await this.userService.verifyEmail(code);
+            return result;
         } catch (error) {
             return { ok: false, error };
         }

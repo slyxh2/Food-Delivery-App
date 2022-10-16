@@ -9,7 +9,7 @@ import { v4 as uuid } from 'uuid';
 @InputType({ isAbstract: true })
 @ObjectType()
 @Entity()
-export class Verfication extends CoreEntity {
+export class Verification extends CoreEntity {
     @Column()
     @Field(type => String)
     code: string

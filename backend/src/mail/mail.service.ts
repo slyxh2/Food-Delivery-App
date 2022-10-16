@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { MAIL_CONFIG_OPTION } from "src/common/common.const";
-import { EmailVar, MailModuleOptions, VerficationEmailInf } from "./mail.interface";
+import { EmailVar, MailModuleOptions, VerificationEmailInf } from "./mail.interface";
 const Mailgun = require('mailgun.js');
 import * as FormData from 'form-data';
 
@@ -32,7 +32,7 @@ export class MailService {
 
     }
 
-    sendVerificationEmail(inf: VerficationEmailInf) {
+    sendVerificationEmail(inf: VerificationEmailInf) {
         const { code, email } = inf;
         this.sendEmail('verify-email', 'verify', [
             { key: 'code', value: code },

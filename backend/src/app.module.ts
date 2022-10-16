@@ -12,7 +12,7 @@ import { CommonModule } from './common/common.module';
 import { User } from './users/entities/users.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.midleware';
-import { Verfication } from './users/entities/verification.entity';
+import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
 
 
@@ -44,7 +44,7 @@ import { MailModule } from './mail/mail.module';
       database: process.env.DB_NAME,
       synchronize: true,
       logging: true,
-      entities: [User, Verfication]
+      entities: [User, Verification]
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

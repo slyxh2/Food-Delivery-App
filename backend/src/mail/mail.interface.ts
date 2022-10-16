@@ -10,7 +10,7 @@ export interface EmailVar {
     value: string
 }
 
-export interface VerficationEmailInf {
+export interface VerificationEmailInf {
     email: string,
     code: string
 }
