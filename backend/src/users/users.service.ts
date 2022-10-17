@@ -34,7 +34,7 @@ export class UserService {
             }
             const user = await this.users.save(this.users.create({ email, password, role }));
             const ver = await this.Verification.save(this.Verification.create({ user }));
-            // this.mailService.sendVerificationEmail({ email, code: ver.code })
+            this.mailService.sendVerificationEmail({ email, code: ver.code })
             return { ok: true };
         } catch (e) {
             return { ok: false, error: "Couldn't create account" }
