@@ -4,7 +4,8 @@ import { User } from "../entities/users.entity";
 
 
 
-@InputType()
+
+@ArgsType()
 export class UserProfileInput {
     @Field(type => Number)
     userId: number;

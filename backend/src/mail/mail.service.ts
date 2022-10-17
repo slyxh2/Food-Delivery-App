@@ -26,9 +26,9 @@ export class MailService {
         };
         emailVar.forEach(item => mailData["v:" + item.key] = item.value);
 
-        mg.messages.create(this.options.domain, mailData)
-            .then(msg => console.log(msg)) // logs response data
-            .catch(err => console.error(err)); // logs any error
+        mg.messages.create(this.options.domain, mailData);
+        // .then(msg => console.log(msg)) // logs response data
+        // .catch(err => console.error(err)); // logs any error
 
     }
 

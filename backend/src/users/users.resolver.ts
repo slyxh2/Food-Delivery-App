@@ -57,7 +57,7 @@ export class UserResolver {
 
     @Query(returns => UserProfileOutput)
     @UseGuards(AuthGuard)
-    async getUserProfile(@Args('userId') userProfileInput: UserProfileInput): Promise<UserProfileOutput> {
+    async getUserProfile(@Args() userProfileInput: UserProfileInput): Promise<UserProfileOutput> {
         try {
             const { user } = await this.userService.findUserById(userProfileInput.userId);
             if (user) {
@@ -65,11 +65,16 @@ export class UserResolver {
                     ok: true,
                     user,
                 }
+            } else {
+                return {
+                    ok: false,
+                    error: 'User not found'
+                }
             }
         } catch (error) {
             return {
                 ok: false,
-                error: 'User not found'
+                error
             }
         }
 
