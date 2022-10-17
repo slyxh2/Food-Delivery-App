@@ -53,11 +53,7 @@ type VerifyEmailOutput {
 
 type Query {
   me: User!
-  getUserProfile(userId: UserProfileInput!): UserProfileOutput!
-}
-
-input UserProfileInput {
-  userId: Float!
+  getUserProfile(userId: Float!): UserProfileOutput!
 }
 
 type Mutation {
