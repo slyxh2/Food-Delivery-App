@@ -10,6 +10,7 @@ type User {
   password: String!
   role: UserRole!
   verified: Boolean!
+  restaurants: [Restaurant!]!
 }
 
 """
@@ -21,6 +22,32 @@ enum UserRole {
   Client
   Owner
   Delivery
+}
+
+type Restaurant {
+  id: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  coverImg: String!
+  adress: String
+  category: Category
+  owner: User!
+}
+
+type Category {
+  id: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  coverImg: String
+  slug: String!
+  restaurant: [Restaurant!]!
+}
+
+type CreateRestaurantOutput {
+  error: String
+  ok: Boolean!
 }
 
 type CreateAccountOutput {
@@ -61,6 +88,7 @@ type Mutation {
   login(input: LoginInput!): LoginOutput!
   editProfile(input: EditProfileInput!): EditProfileOutput!
   verifyEmail(input: VerifyEmailInput!): VerifyEmailOutput!
+  createRestaurant(input: CreateRestaurantInput!): CreateRestaurantOutput!
 }
 
 input CreateAccountInput {
@@ -81,4 +109,11 @@ input EditProfileInput {
 
 input VerifyEmailInput {
   code: String!
+}
+
+input CreateRestaurantInput {
+  name: String!
+  coverImg: String!
+  adress: String
+  categoryName: String!
 }
