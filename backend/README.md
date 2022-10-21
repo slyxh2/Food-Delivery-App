@@ -20,3 +20,9 @@
 + category
 + address
 + coverImage
+
+## category 
++ see categories
++ see Restaurant by Category
++ see Restaurants(pagination)
++ see Restaurant
