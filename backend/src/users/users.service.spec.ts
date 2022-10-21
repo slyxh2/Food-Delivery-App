@@ -3,7 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { JwtService } from 'src/jwt/jwt.service';
 import { MailService } from 'src/mail/mail.service';
 import { Repository } from 'typeorm';
-import { User } from './entities/users.entity';
+import { User, UserRole } from './entities/users.entity';
 import { Verification } from './entities/verification.entity';
 import { UserService } from './users.service';
 
@@ -67,10 +67,11 @@ describe('UserService', () => {
     });
 
     describe('createAccount', () => {
+
         const createAccountArgs = {
             email: 'bs@email.com',
             password: 'bs.password',
-            role: 0,
+            role: UserRole.Client,
         };
 
         const emailArgs = {

@@ -6,9 +6,11 @@ import { DataSource } from 'typeorm';
 import { User } from 'src/users/entities/users.entity';
 import { Verification } from 'src/users/entities/verification.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Restaurant } from 'src/restaurant/entities/restaruant.entity';
+import { Category } from 'src/restaurant/entities/category.entity';
 
 const GRAPHQL_ENDPOINT = '/graphql';
-
+console.log('process.env.DB_HOST', process.env.DB_HOST);
 let connection = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST,
@@ -18,7 +20,7 @@ let connection = new DataSource({
   database: process.env.DB_NAME,
   synchronize: true,
   logging: false,
-  entities: [User, Verification]
+  entities: [User, Verification, Restaurant, Category]
 });
 
 
