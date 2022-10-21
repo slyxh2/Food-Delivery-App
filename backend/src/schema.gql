@@ -24,6 +24,29 @@ enum UserRole {
   Delivery
 }
 
+type DishChoice {
+  name: String!
+  extra: Int
+}
+
+type DishOption {
+  name: String!
+  choices: [DishChoice!]
+  extra: Int
+}
+
+type Dish {
+  id: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  price: Int!
+  photo: String
+  description: String!
+  restaurant: Restaurant!
+  options: [DishOption!]
+}
+
 type Restaurant {
   id: Float!
   createdAt: DateTime!
@@ -33,6 +56,7 @@ type Restaurant {
   adress: String
   category: Category
   owner: User!
+  menu: [Dish!]!
 }
 
 type Category {

@@ -26,3 +26,15 @@
 + see Restaurant by Category
 + see Restaurants(pagination)
 + see Restaurant
+
+
+## dish
++ create dish
++ edit dish
++ delete dish
+
+## order
++ order CRUD
++ order subscription
+
+## payments
