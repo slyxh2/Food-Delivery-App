@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from "@nestjs/common";
 import { IsEmail, IsEnum } from "class-validator";
 import { Restaurant } from 'src/restaurant/entities/restaruant.entity';
+import { Order } from "src/orders/entities/order.entity";
 
 export enum UserRole {
     Client = 'Client',
@@ -40,6 +41,14 @@ export class User extends CoreEntity {
     @OneToMany(type => Restaurant, restaurant => restaurant.owner)
     restaurants: Restaurant[]
 
+    @Field(type => [Order])
+    @OneToMany(type => Order, order => order.customer)
+    orders: Order[]
+
+    @Field(type => [Order])
+    @OneToMany(type => Order, order => order.driver)
+    rides: Order[]
+
     @BeforeInsert()
     @BeforeUpdate()
     async hashPassword(): Promise<void> {
@@ -54,7 +63,6 @@ export class User extends CoreEntity {
 
 
     }
-
     async checkPassword(input: string): Promise<boolean> {
         try {
             return await bcrypt.compare(input, this.password);
