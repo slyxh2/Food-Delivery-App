@@ -61,6 +61,6 @@ export class Dish extends CoreEntity {
     restaurantId: number;
 
     @Field(type => [DishOption], { nullable: true })
-    @Column({ type: 'json', nullable: true })
+    @Column({ type: "jsonb", nullable: true })
     options?: DishOption[];
 }

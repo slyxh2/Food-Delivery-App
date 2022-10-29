@@ -198,10 +198,12 @@ export class RestaurantService {
             });
             if (!dish) return { ok: false, error: "Dish was not found" };
             if (dish.restaurant.ownerId !== owner.id) return { ok: false, error: "You can't edit this dish" };
-            await this.dishes.save([{
-                id: dishId,
-                ...input
-            }]);
+            let inputKeys = Object.keys(input);
+            inputKeys.forEach(key => {
+                dish[key] = input[key];
+            });
+            // const a = await this.dishes.save(this.dishes.create(dish));
+            await this.dishes.save(this.dishes.create(dish));
             return { ok: true }
         } catch (error) {
             return { ok: false, error };
