@@ -4,6 +4,7 @@ import { Dish } from "src/restaurant/entities/dish.entity";
 import { Restaurant } from "src/restaurant/entities/restaruant.entity";
 import { User } from "src/users/entities/users.entity";
 import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from "typeorm";
+import { OrderItem } from "./order-item.entity";
 
 
 export enum OrderStatus {
@@ -27,20 +28,20 @@ export class Order extends CoreEntity {
     @ManyToOne(type => User, user => user.rides, { onDelete: 'SET NULL' })
     driver?: User;
 
-    @Field(type => Restaurant)
+    @Field(type => Restaurant, { nullable: true })
     @ManyToOne(type => Restaurant, restaurant => restaurant.orders, { onDelete: 'SET NULL' })
-    restaurant: Restaurant;
+    restaurant?: Restaurant;
 
-    @Field(type => [Dish])
-    @ManyToMany(type => Dish)
+    @Field(type => [OrderItem])
+    @ManyToMany(type => OrderItem)
     @JoinTable()
-    dishes: Dish[];
+    items: OrderItem[];
 
-    @Field(type => Number)
-    @Column()
-    total: number;
+    @Field(type => Number, { nullable: true })
+    @Column({ nullable: true })
+    total?: number;
 
     @Field(type => OrderStatus)
-    @Column({ type: "enum", enum: OrderStatus })
+    @Column({ type: "enum", enum: OrderStatus, default: OrderStatus.Pending })
     status: OrderStatus;
 }
