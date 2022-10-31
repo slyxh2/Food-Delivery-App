@@ -20,6 +20,7 @@ import { Dish } from './restaurant/entities/dish.entity';
 import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
+import { TOKEN_KEY, TOKEN_KEY_WS } from './common/common.const';
 
 
 @Module({
@@ -54,8 +55,20 @@ import { OrderItem } from './orders/entities/order-item.entity';
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
+      installSubscriptionHandlers: true,
+      subscriptions: {
+        'graphql-ws': true,
+        'subscriptions-transport-ws': {
+          onConnect: (connectionParams) => {
+            return { token: connectionParams[TOKEN_KEY_WS] };
+          }
+        }
+      },
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      context: ({ req }) => ({ user: req.user })
+      context: ({ req }) => {
+        // console.log('connection.context', req.headers[TOKEN_KEY]);
+        return { token: req.headers[TOKEN_KEY] }
+      }
     }),
     JwtModule.forRoot({ privateKey: process.env.PRIVATE_KEY }),
     MailModule.forRoot({
