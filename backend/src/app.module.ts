@@ -20,7 +20,7 @@ import { Dish } from './restaurant/entities/dish.entity';
 import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
-import { TOKEN_KEY, TOKEN_KEY_WS } from './common/common.const';
+import { TOKEN_KEY } from './common/common.const';
 
 
 @Module({
@@ -60,7 +60,7 @@ import { TOKEN_KEY, TOKEN_KEY_WS } from './common/common.const';
         'graphql-ws': true,
         'subscriptions-transport-ws': {
           onConnect: (connectionParams) => {
-            return { token: connectionParams[TOKEN_KEY_WS] };
+            return { token: connectionParams[TOKEN_KEY] };
           }
         }
       },
@@ -81,7 +81,8 @@ import { TOKEN_KEY, TOKEN_KEY_WS } from './common/common.const';
     MailModule,
     RestaurantModule,
     AuthModule,
-    OrdersModule
+    OrdersModule,
+    CommonModule
   ],
 
 })

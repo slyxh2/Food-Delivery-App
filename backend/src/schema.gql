@@ -218,6 +218,11 @@ type GetOrdersOutput {
   orders: [Order!]
 }
 
+type TakeOrderOutput {
+  error: String
+  ok: Boolean!
+}
+
 input CreateOrderItemInput {
   dishId: Float!
   options: [OrderItemOptionInputType!]
@@ -279,7 +284,7 @@ type Mutation {
   deleteDish(input: DeleteDishInput!): DeleteDishOutput!
   createOrder(input: CreateOrderInput!): CreateOrderOutput!
   editOrder(input: EditOrderInput!): EditOrderOutput!
-  hotPotReady: Boolean!
+  takeOrder(input: TakeOrderInput!): TakeOrderOutput!
 }
 
 input CreateAccountInput {
@@ -363,6 +368,16 @@ input EditOrderInput {
   status: OrderStatus!
 }
 
+input TakeOrderInput {
+  id: Float!
+}
+
 type Subscription {
-  hotPot: String!
+  pendingOrders: Order!
+  cookedOrders: Order!
+  orderUpdates(input: OrderUpdateInput!): Order!
+}
+
+input OrderUpdateInput {
+  id: Float!
 }

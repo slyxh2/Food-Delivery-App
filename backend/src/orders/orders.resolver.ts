@@ -9,14 +9,17 @@ import { GetOrdersInput, GetOrdersOutput } from "./dto/get-orders.dto";
 import { Order } from "./entities/order.entity";
 import { OrderService } from "./orders.service";
 import { PubSub } from 'graphql-subscriptions'
-import { Any } from "typeorm";
+import { Inject } from "@nestjs/common";
+import { NEW_COOKED_ORDER, NEW_ORDER_UPDATE, NEW_PENDING_ORDER, PUB_SUB } from "src/common/common.const";
+import { OrderUpdateInput } from "./dto/order-update.dto";
+import { TakeOrderInput, TakeOrderOutput } from "./dto/take-order.dto";
 
-const pubsub = new PubSub();
 
 @Resolver(of => Order)
 export class OrderResolver {
     constructor(
-        private readonly orders: OrderService
+        private readonly orders: OrderService,
+        @Inject(PUB_SUB) private readonly pubSub: PubSub
     ) { }
 
 
@@ -56,18 +59,59 @@ export class OrderResolver {
         return this.orders.editOrder(user, input);
     }
 
-    @Mutation(returns => Boolean)
-    hotPotReady() {
-        pubsub.publish('hotPot', {
-            ready: "is ready"
-        });
-        return true;
+    @Subscription(returns => Order, {
+        filter: (payload, variables, context) => {
+            const { pendingOrders } = payload;
+            const { ownerId } = pendingOrders;
+            const { user } = context;
+            return ownerId === user.id;
+        },
+        resolve: (payload) => {
+            const { pendingOrders } = payload;
+            return pendingOrders.order;
+        }
+    })
+    @Role(['Owner'])
+    pendingOrders() {
+        return this.pubSub.asyncIterator(NEW_PENDING_ORDER);
     }
 
-    @Subscription(returns => String)
-    @Role(['Any'])
-    hotPot(@AuthUser() user: User) {
-        console.log(user);
-        return pubsub.asyncIterator('hotPot');
+
+    @Subscription(returns => Order, {
+        filter: (payload, variables, context) => {
+            return true;
+        }
+    })
+    @Role(['Delivery'])
+    cookedOrders() {
+        return this.pubSub.asyncIterator(NEW_COOKED_ORDER);
     }
+
+    @Subscription(returns => Order, {
+        filter: (payload, variables, context) => {
+            const { orderUpdates: order } = payload;
+            const { input } = variables;
+            const { user } = context;
+            const id = user.id;
+            if (order.driverId !== id && order.customerId !== id && order.restaurant.ownerId !== user.id) return false;
+            return order.id === input.id;
+        }
+    })
+    @Role(['Any'])
+    orderUpdates(@Args('input') input: OrderUpdateInput) {
+        return this.pubSub.asyncIterator(NEW_ORDER_UPDATE);
+    }
+
+
+    @Mutation(returns => TakeOrderOutput)
+    @Role(['Delivery'])
+    async takeOrder(
+        @AuthUser() driver: User,
+        @Args('input') input: TakeOrderInput
+    ): Promise<TakeOrderOutput> {
+        return this.orders.takeOrder(driver, input);
+    }
+
+
+
 }

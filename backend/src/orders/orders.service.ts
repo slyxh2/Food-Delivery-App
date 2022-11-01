@@ -1,5 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { PubSub } from "graphql-subscriptions";
+import { NEW_COOKED_ORDER, NEW_ORDER_UPDATE, NEW_PENDING_ORDER, PUB_SUB } from "src/common/common.const";
 import { Dish } from "src/restaurant/entities/dish.entity";
 import { Restaurant } from "src/restaurant/entities/restaruant.entity";
 import { User, UserRole } from "src/users/entities/users.entity";
@@ -8,6 +10,7 @@ import { CreateOrderInput, CreateOrderOutput } from "./dto/create-order.dto";
 import { EditOrderInput, EditOrderOutput } from "./dto/edit-order.dto";
 import { GetSingleOrderInput, GetSingleOrderOutput } from "./dto/get-order.dto";
 import { GetOrdersInput, GetOrdersOutput } from "./dto/get-orders.dto";
+import { TakeOrderInput, TakeOrderOutput } from "./dto/take-order.dto";
 import { OrderItem } from "./entities/order-item.entity";
 import { Order, OrderStatus } from "./entities/order.entity";
 
@@ -20,6 +23,7 @@ export class OrderService {
         @InjectRepository(Restaurant) private readonly restaurants: Repository<Restaurant>,
         @InjectRepository(OrderItem) private readonly orderItems: Repository<OrderItem>,
         @InjectRepository(Dish) private readonly dishes: Repository<Dish>,
+        @Inject(PUB_SUB) private readonly pubSub: PubSub
     ) { }
 
 
@@ -65,8 +69,6 @@ export class OrderService {
                 );
                 orderItems.push(orderItem);
             }
-            console.log(orderFinalPrice);
-
             const order = await this.orders.save(
                 this.orders.create(
                     {
@@ -77,6 +79,12 @@ export class OrderService {
                     }
                 )
             );
+            await this.pubSub.publish(NEW_PENDING_ORDER, {
+                pendingOrders: {
+                    order,
+                    ownerId: restaurant.ownerId
+                }
+            });
             return { ok: true };
         } catch (error) {
             return { ok: false, error: "Can not create dish" };
@@ -178,9 +186,48 @@ export class OrderService {
                 id: orderId,
                 status
             });
+            const newOrder = {
+                ...order,
+                status
+            };
+            if (user.role === UserRole.Owner) {
+                if (status === OrderStatus.Cooked) {
+                    await this.pubSub.publish(NEW_COOKED_ORDER, {
+                        cookedOrders: newOrder
+                    })
+                }
+            }
+            await this.pubSub.publish(NEW_ORDER_UPDATE, {
+                orderUpdates: newOrder
+            })
             return { ok: true };
         } catch (error) {
             return { ok: false, error }
+        }
+
+    }
+
+    async takeOrder(driver: User, input: TakeOrderInput): Promise<TakeOrderOutput> {
+        try {
+            const { id } = input;
+            const order = await this.orders.findOne({
+                where: { id }
+            });
+            if (!order) return { ok: false, error: 'Order was not found' };
+            if (order.driver) return { ok: false, error: 'Order already has the driver' };
+            await this.orders.save({
+                id,
+                driver
+            });
+            await this.pubSub.publish(NEW_ORDER_UPDATE, {
+                orderUpdates: {
+                    ...order,
+                    driver
+                }
+            });
+            return { ok: true };
+        } catch (error) {
+            return { ok: false, error };
         }
 
     }
