@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import * as Joi from 'joi';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ScheduleModule } from '@nestjs/schedule'
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { RestaurantModule } from './restaurant/restaurant.module';
@@ -21,6 +22,8 @@ import { OrdersModule } from './orders/orders.module';
 import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
 import { TOKEN_KEY } from './common/common.const';
+import { PaymentsModule } from './payments/payments.module';
+import { Payment } from './payments/entities/payment.entity';
 
 
 @Module({
@@ -51,7 +54,7 @@ import { TOKEN_KEY } from './common/common.const';
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== 'prod',
       logging: process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
-      entities: [User, Verification, Restaurant, Category, Dish, Order, OrderItem]
+      entities: [User, Verification, Restaurant, Category, Dish, Order, OrderItem, Payment]
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -70,6 +73,7 @@ import { TOKEN_KEY } from './common/common.const';
         return { token: req.headers[TOKEN_KEY] }
       }
     }),
+    ScheduleModule.forRoot(),
     JwtModule.forRoot({ privateKey: process.env.PRIVATE_KEY }),
     MailModule.forRoot({
       apiKey: process.env.MAILGUN_API_KEY,
@@ -82,7 +86,8 @@ import { TOKEN_KEY } from './common/common.const';
     RestaurantModule,
     AuthModule,
     OrdersModule,
-    CommonModule
+    CommonModule,
+    PaymentsModule
   ],
 
 })
