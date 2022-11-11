@@ -10,27 +10,55 @@ import { Restaurant } from "../pages/client/restaurant";
 import { Root } from '../components/root';
 import { useMe } from "../common/hooks/useMe";
 import { UserRole } from "../types/globalTypes";
+import { ConfirmEmail } from "../pages/user/confirm-email";
+import { EditProfile } from "../pages/user/edit-profile";
+
+const publicRoutes: RouteObject[] = [
+    {
+        path: 'confirm',
+        element: <ConfirmEmail />,
+        loader: ({ request }) => {
+            const url = new URL(request.url);
+            const searchTerm = url.searchParams.get("code");
+            return searchTerm;
+        }
+    },
+    {
+        path: 'edit-profile',
+        element: <EditProfile />
+    }
+];
 
 const clientRoutes: RouteObject[] = [
     {
         path: '/',
-        element: <Restaurant />,
+        element: <Root />,
         errorElement: <NotFound />,
-    }
+        children: [
+            ...publicRoutes
+        ]
+    },
+
 ];
 const ownerRoutes: RouteObject[] = [
     {
         path: '/',
-        element: <Restaurant />,
+        element: <Root />,
         errorElement: <NotFound />,
-    }
+        children: [
+            ...publicRoutes
+        ]
+    },
 ];
 const driverRoutes: RouteObject[] = [
     {
         path: '/',
-        element: <Restaurant />,
+        element: <Root />,
         errorElement: <NotFound />,
-    }
+        children: [
+            ...publicRoutes
+        ]
+    },
 ];
 
 
