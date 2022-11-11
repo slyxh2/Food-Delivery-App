@@ -19,3 +19,15 @@ export const CREATE_ACCOUNT_MUTATION = gql`
     }
   }
 `;
+
+
+export const ME_QUERY = gql`
+  query meQuery {
+    me {
+      id
+      email
+      role
+      verified
+    }
+  }
+`;

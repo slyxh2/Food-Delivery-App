@@ -7,14 +7,24 @@ import { LoginMutation, LoginMutationVariables } from "../types/LoginMutation";
 import { ErrorMesssage } from "../components/form-error";
 import { LoginInput } from "../types/globalTypes";
 import { Button } from '../components/button'
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { emailPattern, logoUrl, TOKEN_KEY } from "../common/conts";
+import { authToken, isLogged } from "../appollo";
 
 
 interface LoginForm extends LoginInput { };
 export const Login = () => {
+    const navigate = useNavigate();
     const { register, handleSubmit, getValues, formState: { errors, isValid } } = useForm<LoginForm>();
     const onCompleted = (data: LoginMutation) => {
         const { login: { ok, error, token } } = data;
+        if (ok && token) {
+            console.log(token);
+            localStorage.setItem(TOKEN_KEY, token);
+            isLogged(true);
+            authToken(token);
+            navigate('/');
+        }
     }
     const [loginMutation, { data: loginMutationResult, loading }] = useMutation<LoginMutation, LoginMutationVariables>(LOGIN_MUTATION, { onCompleted });
     const onSubmit = () => {
@@ -27,7 +37,7 @@ export const Login = () => {
 
     return <div className="h-screen flex items-center justify-center bg-gray-800">
         <div className="bg-white w-full max-w-lg py-10 rounded-lg flex flex-col px-5 items-center">
-            <img src="https://d3i4yxtzktqr9n.cloudfront.net/web-eats-v2/97c43f8974e6c876.svg" className="w-52 mb-10" alt="Nuber Eats"></img>
+            <img src={logoUrl} className="w-52 mb-10" alt="Nuber Eats"></img>
             <h1 className="w-full font-medium text-center text-3xl mb-5" >LOG IN</h1>
             <Helmet>
                 <title>Login | Nuber Eats</title>
@@ -38,7 +48,7 @@ export const Login = () => {
             >
                 <input
                     className="input mb-3"
-                    {...register("email", { required: "Email is required" })}
+                    {...register("email", { required: "Email is required", pattern: emailPattern })}
                     placeholder='Email'
                     required
                     type='email'
@@ -55,6 +65,9 @@ export const Login = () => {
                     type='password'
                     name='password'
                 />
+                {errors.email?.type === "pattern" && (
+                    <ErrorMesssage message={"Please enter a valid email"} />
+                )}
                 {errors.password?.message && (
                     <ErrorMesssage message={errors.password?.message} />
                 )}
@@ -73,7 +86,7 @@ export const Login = () => {
                 </Button>
             </form>
             <div>
-                New to Nuber?{" "}
+                New to Nuber?{"     "}
                 <Link to="/create-account" className="text-lime-600 hover:underline">
                     Create an Account
                 </Link>

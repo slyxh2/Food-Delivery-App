@@ -6,27 +6,74 @@ import { NotFound } from "../pages/404";
 import { Login } from "../pages/login";
 import { CreateAccount } from "../pages/create-account";
 import '../styles/tailwind.css';
+import { Restaurant } from "../pages/client/restaurant";
+import { Root } from '../components/root';
+import { useMe } from "../common/hooks/useMe";
+import { UserRole } from "../types/globalTypes";
 
-let logInRouter: RouteObject[] = [
+const clientRoutes: RouteObject[] = [
     {
         path: '/',
-        element: <NotFound />
+        element: <Restaurant />,
+        errorElement: <NotFound />,
     }
 ];
-let logOutRouter: RouteObject[] = [
+const ownerRoutes: RouteObject[] = [
     {
         path: '/',
-        element: <Login />
+        element: <Restaurant />,
+        errorElement: <NotFound />,
+    }
+];
+const driverRoutes: RouteObject[] = [
+    {
+        path: '/',
+        element: <Restaurant />,
+        errorElement: <NotFound />,
+    }
+];
+
+
+const logOutRoutes: RouteObject[] = [
+    {
+        path: '/',
+        element: <Root />,
+        errorElement: <NotFound />,
+        children: [
+            {
+                path: '',
+                element: <Restaurant />
+            },
+            {
+                path: 'login',
+                element: <Login />
+            },
+            {
+                path: 'create-account',
+                element: <CreateAccount />
+            }
+        ]
     },
-    {
-        path: '/create-account',
-        element: <CreateAccount />
-    }
 ];
+
+type roleInput = UserRole.Client | UserRole.Delivery | UserRole.Owner | undefined;
+const getRouteObj = (role: roleInput): RouteObject[] => {
+    if (role === UserRole.Client) return clientRoutes;
+    if (role === UserRole.Owner) return ownerRoutes;
+    return driverRoutes;
+}
+
 export const MainRouter = () => {
     const logFlag = useReactiveVar(isLogged);
-    const router = createBrowserRouter(logFlag ? logInRouter : logOutRouter);
+    let routes: RouteObject[] = [];
+    const { data, loading, error } = useMe();
+    if (logFlag) {
+        routes = getRouteObj(data?.me.role);
+    } else {
+        routes = logOutRoutes;
+    }
+
     return <>
-        <RouterProvider router={router} />
+        <RouterProvider router={createBrowserRouter(routes)} />
     </>
 }

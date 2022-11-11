@@ -5,21 +5,28 @@ import { useForm } from "react-hook-form";
 import { CREATE_ACCOUNT_MUTATION } from "../api";
 import { CreateAccountMutation, CreateAccountMutationVariables } from "../types/CreateAccountMutation";
 import { ErrorMesssage } from "../components/form-error";
-import { LoginInput } from "../types/globalTypes";
+import { CreateAccountInput, UserRole } from "../types/globalTypes";
 import { Button } from '../components/button'
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { emailPattern, logoUrl } from "../common/conts";
 
-
-interface LoginForm extends LoginInput { };
+interface CreateAccountForm extends CreateAccountInput { };
 export const CreateAccount = () => {
-    const { register, handleSubmit, getValues, formState: { errors, isValid } } = useForm<LoginForm>();
+    const navigate = useNavigate();
+    const { register, handleSubmit, getValues, formState: { errors, isValid } } = useForm<CreateAccountForm>();
     const onCompleted = (data: CreateAccountMutation) => {
-
+        console.log(data);
+        const { createAccount: { ok } } = data;
+        if (ok) {
+            alert("Account Created! Log in Now!");
+            navigate('/login');
+        }
     }
-    const [loginMutation, { data: loginMutationResult, loading }] = useMutation<CreateAccountMutation, CreateAccountMutationVariables>(CREATE_ACCOUNT_MUTATION, { onCompleted });
+    const [createAccountMutation, { data: createAccountMutationResult, loading }] = useMutation<CreateAccountMutation, CreateAccountMutationVariables>(CREATE_ACCOUNT_MUTATION, { onCompleted });
     const onSubmit = () => {
         if (!loading) {
-            // loginMutation({ variables: { createAccounInput } }).then(val => console.log(val));
+            console.log(getValues());
+            createAccountMutation({ variables: { createAccountInput: getValues() } });
         }
 
     }
@@ -27,8 +34,8 @@ export const CreateAccount = () => {
 
     return <div className="h-screen flex items-center justify-center bg-gray-800">
         <div className="bg-white w-full max-w-lg py-10 rounded-lg flex flex-col px-5 items-center">
-            <img src="https://d3i4yxtzktqr9n.cloudfront.net/web-eats-v2/97c43f8974e6c876.svg" className="w-52 mb-10" alt="Nuber Eats"></img>
-            <h1 className="w-full font-medium text-center text-3xl mb-5" >LOG IN</h1>
+            <img src={logoUrl} className="w-52 mb-10" alt="Nuber Eats"></img>
+            <h1 className="w-full font-medium text-center text-3xl mb-5" >Create Account</h1>
             <Helmet>
                 <title>Create Account | Nuber Eats</title>
             </Helmet>
@@ -38,7 +45,7 @@ export const CreateAccount = () => {
             >
                 <input
                     className="input mb-3"
-                    {...register("email", { required: "Email is required" })}
+                    {...register("email", { required: "Email is required", pattern: emailPattern })}
                     placeholder='Email'
                     required
                     type='email'
@@ -55,21 +62,42 @@ export const CreateAccount = () => {
                     type='password'
                     name='password'
                 />
+                {errors.email?.type === "pattern" && (
+                    <ErrorMesssage message={"Please enter a valid email"} />
+                )}
                 {errors.password?.message && (
                     <ErrorMesssage message={errors.password?.message} />
                 )}
                 {errors.password?.type === 'minLength' && (
                     <ErrorMesssage message="Password must be more than 3 chars" />
                 )}
+                <select
+                    {...register("role", { required: "Role is required" })}
+                    placeholder="Pleaese select your role"
+                    className="input"
+                >
+                    {
+                        Object.keys(UserRole).map((role, index) => <option value={role} key={index}>{role}</option>)
+                    }
+                </select>
 
                 <Button
                     className={isValid ? "btn mt-3" : "btn-disable mt-3"}
                     type="submit"
                     disabled={isValid ? false : true}
                 >
-                    {loading ? "Loading..." : "Log In"}
+                    {loading ? "Loading..." : "Create an account"}
                 </Button>
+                {
+                    createAccountMutationResult?.createAccount.error && <ErrorMesssage message={createAccountMutationResult?.createAccount.error} />
+                }
             </form>
+            <div>
+                Already have an account?{"     "}
+                <Link to="/login" className="text-lime-600 hover:underline">
+                    Log in now
+                </Link>
+            </div>
         </div>
 
     </div>
