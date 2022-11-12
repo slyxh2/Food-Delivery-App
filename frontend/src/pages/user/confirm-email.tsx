@@ -1,17 +1,36 @@
-import { useMutation } from "@apollo/client";
+import { gql, useApolloClient, useMutation } from "@apollo/client";
 import React, { useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useLoaderData, useNavigate, useNavigation } from "react-router-dom";
 import { VERIFY_EMAIL_MUTATION } from "../../api";
+import { useMe } from "../../common/hooks/useMe";
 import { verifyEmail, verifyEmailVariables } from "../../types/verifyEmail";
 
 export const ConfirmEmail = () => {
     let code = useLoaderData() + '';
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const { data: userData } = useMe();
+    const client = useApolloClient();
     const onCompleted = (data: verifyEmail) => {
-        setTimeout(() => {
-            navigate('/');
-        }, 2000);
+        const {
+            verifyEmail: { ok },
+        } = data;
+        if (ok && userData?.me.id) {
+            client.writeFragment({
+                id: `User:${userData.me.id}`,
+                fragment: gql`
+                fragment VerifiedUser on User {
+                  verified
+                }
+              `,
+                data: {
+                    verified: true,
+                },
+            });
+            setTimeout(() => {
+                navigate('/');
+            }, 2000);
+        }
     }
     const [verifyEmail] = useMutation<verifyEmail, verifyEmailVariables>(VERIFY_EMAIL_MUTATION, { onCompleted });
     console.log(code);

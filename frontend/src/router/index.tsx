@@ -96,6 +96,13 @@ export const MainRouter = () => {
     let routes: RouteObject[] = [];
     const { data, loading, error } = useMe();
     if (logFlag) {
+        if (!data || loading || error) {
+            return (
+                <div className="h-screen flex justify-center items-center">
+                    <span className="font-medium text-xl tracking-wide">Loading...</span>
+                </div>
+            );
+        }
         routes = getRouteObj(data?.me.role);
     } else {
         routes = logOutRoutes;
