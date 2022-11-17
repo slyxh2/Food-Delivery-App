@@ -18,6 +18,7 @@ import { CreateDishInput, CreateDishOutput } from "./dto/create-dish.dto";
 import { Dish } from "./entities/dish.entity";
 import { EditDishInput, EditDishOutput } from "./dto/edit-dish.dto";
 import { DeleteDishInput, DeleteDishOutput } from "./dto/delete-dish.dto";
+import { ITEM_PER_PAGE } from "src/common/common.const";
 
 
 @Injectable()
@@ -89,13 +90,13 @@ export class RestaurantService {
         const { page } = input;
         try {
             const [restaurants, totalItem] = await this.restaurants.findAndCount({
-                skip: (page - 1) * 25,
-                take: 25,
+                skip: (page - 1) * ITEM_PER_PAGE,
+                take: ITEM_PER_PAGE,
                 order: {
                     isPromoted: 'DESC'
                 }
             });
-            const totalPage = Math.ceil(totalItem / 25);
+            const totalPage = Math.ceil(totalItem / ITEM_PER_PAGE);
             return { ok: true, totalPage, restaurants };
         } catch (error) {
             return { ok: false, error: 'can not get the restaurant list' }
@@ -133,11 +134,11 @@ export class RestaurantService {
                 .createQueryBuilder('restaurant')
                 .leftJoinAndSelect('restaurant.category', 'category')
                 .where("category.slug=:slug", { slug: category.slug })
-                .skip((page - 1) * 25)
-                .take(25)
+                .skip((page - 1) * ITEM_PER_PAGE)
+                .take(ITEM_PER_PAGE)
                 .getMany();
             const totalRestaurant = await this.countRestaurant(category);
-            const totalPage = Math.ceil(totalRestaurant / 25);
+            const totalPage = Math.ceil(totalRestaurant / ITEM_PER_PAGE);
             return { ok: true, category, totalPage, restaurants };
         } catch (error) {
             return { ok: false, error: "can not find the category" }
@@ -164,10 +165,10 @@ export class RestaurantService {
             const { query, page } = input;
             const [restaurants, totalResults] = await this.restaurants.findAndCount({
                 where: { name: Raw(name => `${name} ILIKE '%${query}'%`) },
-                skip: (page - 1) * 25,
-                take: 25
+                skip: (page - 1) * ITEM_PER_PAGE,
+                take: ITEM_PER_PAGE
             });
-            return { ok: true, restaurants, totalResults, totalPage: Math.ceil(totalResults / 25) };
+            return { ok: true, restaurants, totalResults, totalPage: Math.ceil(totalResults / ITEM_PER_PAGE) };
         } catch (err) {
             return { ok: false, error: 'can not search the restaurant' };
         }

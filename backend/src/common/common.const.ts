@@ -11,3 +11,5 @@ export const NEW_PENDING_ORDER = 'NEW_PENDING_ORDER';
 export const NEW_COOKED_ORDER = 'NEW_COOKED_ORDER';
 
 export const NEW_ORDER_UPDATE = 'NEW_ORDER_UPDATE';
+
+export const ITEM_PER_PAGE = 6;
