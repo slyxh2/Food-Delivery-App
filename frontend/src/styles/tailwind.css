@@ -17,6 +17,40 @@
     @apply text-lg font-medium focus:outline-none text-white py-4  transition-colors bg-lime-600 hover:bg-lime-700;
 }
 
+.btn-main {
+    @apply text-lg font-medium focus:outline-none text-white py-4 px-3 transition-colors bg-black hover:bg-zinc-800 rounded-md;
+}
+
 .btn-disable {
     @apply text-lg font-medium focus:outline-none text-white py-4  bg-gray-300;
 }
+
+.main-bg{
+    @apply relative;
+    top:0;
+    left: 0;
+    background-color: rgb(250, 146, 105);
+    height: 80vh;
+    min-width: 800px;
+}
+
+.bg-img-left {
+    @apply absolute;
+    width: 40%;
+    height: 100%;
+    left: 0;
+    object-fit: cover;
+}
+
+.bg-img-right {
+    @apply absolute;
+    width: 40%;
+    height: 100%;
+    right: 0;
+    object-fit: cover;
+}
+
+.header{
+    @apply py-4;
+}
+

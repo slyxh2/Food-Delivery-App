@@ -1,6 +1,5 @@
 import { gql } from "@apollo/client";
 
-
 export const LOGIN_MUTATION = gql`
     mutation LoginMutation($loginInput:LoginInput!){
         login(input:$loginInput){
@@ -29,6 +28,8 @@ export const VERIFY_EMAIL_MUTATION = gql`
   }
 `;
 
+
+
 export const EDIT_PROFILE_MUTATION = gql`
   mutation editProfile($input: EditProfileInput!) {
     editProfile(input: $input) {
@@ -48,3 +49,35 @@ export const ME_QUERY = gql`
     }
   }
 `;
+
+export const RESTAURANTS_QUERY = gql`
+  query restaurantsPageQuery($input: RestaurantInput!){
+    allCategories {
+      ok
+      error
+      categories {
+        id
+        name
+        coverImg
+        slug
+        restaurantCount
+      }
+    }
+    restaurants(input:$input){
+      ok
+      error
+      totalPage
+      totalResults
+      restaurants{
+        id
+        name
+        coverImg
+        category{
+          name
+        }
+        adress
+        isPromoted
+      }
+    }
+  }
+`

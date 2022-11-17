@@ -15,6 +15,10 @@ import { EditProfile } from "../pages/user/edit-profile";
 
 const publicRoutes: RouteObject[] = [
     {
+        path: '',
+        element: <Restaurant />
+    },
+    {
         path: 'confirm',
         element: <ConfirmEmail />,
         loader: ({ request }) => {
