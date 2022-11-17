@@ -164,13 +164,13 @@ export class RestaurantService {
         try {
             const { query, page } = input;
             const [restaurants, totalResults] = await this.restaurants.findAndCount({
-                where: { name: Raw(name => `${name} ILIKE '%${query}'%`) },
+                where: { name: Raw(name => `${name} ILIKE '%${query}%'`) },
                 skip: (page - 1) * ITEM_PER_PAGE,
                 take: ITEM_PER_PAGE
             });
             return { ok: true, restaurants, totalResults, totalPage: Math.ceil(totalResults / ITEM_PER_PAGE) };
         } catch (err) {
-            return { ok: false, error: 'can not search the restaurant' };
+            return { ok: false, error: err };
         }
 
     }
